@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const userRouter = require("./routes/user.route.js");
 require("dotenv").config();
+const signup = require("./routes/auth.route.js");
 
 mongoose
   .connect(process.env.MONGO)
@@ -17,7 +18,8 @@ const app = express();
 app.use(express.json());
 
 app.use("/", userRouter);
+app.use("/auth", signup);
 
-app.listen(3000, () => {
-  console.log("Server is running on port 3000!!!");
+app.listen(4000, () => {
+  console.log("Server is running on port 4000!!!");
 });
