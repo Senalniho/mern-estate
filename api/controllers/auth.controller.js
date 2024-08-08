@@ -2,7 +2,7 @@ const express = require("express");
 const User = require("../models/user.model.js");
 const bcrypt = require("bcrypt");
 
-const signup = async (req, res) => {
+const signup = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
     const salt = await bcrypt.genSalt(10);
@@ -24,7 +24,7 @@ const signup = async (req, res) => {
     await newUser.save();
     res.status(200).json("User created successfully");
   } catch (error) {
-    res.status(500).json({ message: "Error creating User" });
+    res.status(500).json({ message: error.message });
   }
 };
 

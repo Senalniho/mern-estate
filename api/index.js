@@ -20,6 +20,18 @@ app.use(express.json());
 app.use("/", userRouter);
 app.use("/auth", signup);
 
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message = "Internal Server Error" } = err;
+  return res.status(statusCode).json({
+    error: {
+      message,
+      statusCode,
+      success: false,
+    },
+  });
+});
+
 app.listen(4000, () => {
   console.log("Server is running on port 4000!!!");
 });
