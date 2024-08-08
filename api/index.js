@@ -17,8 +17,8 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/", userRouter);
-app.use("/auth", signup);
+app.use("/api", userRouter);
+app.use("/api/auth", signup);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
