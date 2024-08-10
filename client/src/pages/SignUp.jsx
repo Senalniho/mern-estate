@@ -21,7 +21,7 @@ export default function SignUp() {
     setErrors(null);
 
     try {
-      const res = await fetch("/api/auth", {
+      const res = await fetch("api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,8 +34,12 @@ export default function SignUp() {
         console.log(data);
         navigate("/sign-in");
       } else {
-        const errorData = await res.json(); // Assuming your backend sends error details
-        setErrors(errorData.message || "An error occurred. Please try again.");
+        const errorData = await res.json();
+        if (errorData.error) {
+          setErrors(`${errorData.error.code}: ${errorData.error.message}`);
+        } else {
+          setErrors("An unknown error occurred. Please try again.");
+        }
       }
     } catch (error) {
       setErrors(error.message);
