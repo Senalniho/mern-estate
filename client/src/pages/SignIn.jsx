@@ -7,6 +7,7 @@ import {
   signInSuccess,
   signInFailure,
 } from "../redux/user/userSlice.js";
+import OAuth from "../components/OAuth.jsx";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ export default function SignIn() {
         >
           {loading ? "Submitting..." : "Sign In"}
         </button>
+        <OAuth />
         {errors && <p className="text-red-500 text-center">{errors}</p>}
       </form>
       <div className="flex gap-2 mt-5">
