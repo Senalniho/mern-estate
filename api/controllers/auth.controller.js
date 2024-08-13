@@ -6,7 +6,6 @@ const {
   errorHandler,
 } = require("../utilities/error.js");
 const jwt = require("jsonwebtoken");
-// const { jwtSecret } = require("../config/config.js");
 
 const signup = async (req, res, next) => {
   try {
@@ -18,14 +17,14 @@ const signup = async (req, res, next) => {
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       //   return res.status(400).json({ message: "Username already exists" });
-      errorHandlingMiddleware(400, "Username already exists");
+      errorHandlingMiddleware(400, { message: "Username already exists" });
     }
 
     // Check if email already exists
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       //   return res.status(400).json({ message: "Email already exists" });
-      errorHandlingMiddleware(400, "Email already exists");
+      errorHandlingMiddleware(400, { message: "Email already exists" });
     }
 
     const newUser = new User({ username, email, password: hashedPassword });
@@ -43,12 +42,17 @@ const signin = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return next(errorHandlingMiddleware(400, "Invalid email or password"));
+      return next(
+        errorHandlingMiddleware(400, { message: "Invalid email or password" })
+      );
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return next(errorHandlingMiddleware(400, "Invalid email or password"));
+      const error = errorHandlingMiddleware(400, {
+        message: "Invalid email or password",
+      });
+      return next(error);
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
     const { password: pass, ...rest } = user._doc;
@@ -62,7 +66,7 @@ const signin = async (req, res, next) => {
     // For example:
     // res.json({ message: "Login successful" });
   } catch (error) {
-    return next(errorHandlingMiddleware(500, error.message));
+    return next(errorHandlingMiddleware(500, { message: error.message }));
   }
 };
 
