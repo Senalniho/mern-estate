@@ -1,11 +1,10 @@
-import React from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OAuth from "../components/OAuth";
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
-  const [errors, setErrors] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -18,10 +17,11 @@ export default function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent entire page form loading when form is submitted.
-    setLoading(true);
-    setErrors(null);
+
+    // setErrors(null);
 
     try {
+      setLoading(true);
       const res = await fetch("api/auth/signup", {
         method: "POST",
         headers: {
@@ -30,28 +30,25 @@ export default function SignUp() {
         body: JSON.stringify(formData), // This is for security purposes.
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        console.log(data);
-        navigate("/sign-in");
-      } else {
-        const errorData = await res.json();
-        if (errorData.error) {
-          setErrors(`${errorData.error.code}: ${errorData.error.message}`);
-        } else {
-          setErrors("An unknown error occurred. Please try again.");
-        }
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        setLoading(false);
+        setError(data.message);
+        return;
       }
-    } catch (error) {
-      setErrors(error.message);
-    } finally {
       setLoading(false);
+      setError(null);
+      navigate("/sign-in");
+    } catch (error) {
+      setLoading(false);
+      setError(error.message);
     }
   };
 
   return (
-    <div className="p-3 max-w-md mx-auto rounded-lg shadow-lg mt-6 ">
-      <h1 className="text-3xl text-center font-semibold my-7">SignUp</h1>
+    <div className="p-3 max-w-lg mx-auto">
+      <h1 className="text-3xl text-center font-semibold my-7">Sign Up</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="text"
@@ -74,22 +71,22 @@ export default function SignUp() {
           id="password"
           onChange={handleChange}
         />
+
         <button
-          className="bg-slate-700 text-white p-3 rounded-lg  
-        uppercase hover:opacity-95 disabled:opacity-80"
           disabled={loading}
+          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
         >
-          {loading ? "Submitting..." : "Sign Up"}
+          {loading ? "Loading..." : "Sign Up"}
         </button>
         <OAuth />
-        {errors && <p className="text-red-500 text-center">{errors}</p>}
       </form>
       <div className="flex gap-2 mt-5">
         <p>Have an account?</p>
-        <Link to="/sign-in">
+        <Link to={"/sign-in"}>
           <span className="text-blue-700">Sign in</span>
         </Link>
       </div>
+      {error && <p className="text-red-500 mt-5">{error}</p>}
     </div>
   );
 }

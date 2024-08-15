@@ -25,6 +25,7 @@ export default function OAuth() {
           photo: result.user.photoURL,
         }),
       });
+      console.log(res.body.name, res.body.email, res.body.photo);
       const data = await res.json();
       dispatch(signInSuccess(data));
       navigate("/");

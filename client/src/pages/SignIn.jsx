@@ -1,4 +1,3 @@
-import React from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,9 +24,9 @@ export default function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent entire page form loading when form is submitted.
-    dispatch(signInStart());
 
     try {
+      dispatch(signInStart());
       const res = await fetch("api/auth/signin", {
         method: "POST",
         headers: {
@@ -36,14 +35,14 @@ export default function SignIn() {
         body: JSON.stringify(formData), // This is for security purposes.
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        dispatch(signInSuccess(data));
-        navigate("/");
-      } else {
-        const errorData = await res.json();
-        dispatch(signInFailure(errorData.error));
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        dispatch(signInFailure(data.message));
+        return;
       }
+      dispatch(signInSuccess(data));
+      navigate("/");
     } catch (error) {
       dispatch(signInFailure(error.message));
     }

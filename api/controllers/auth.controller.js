@@ -8,30 +8,14 @@ const {
 const jwt = require("jsonwebtoken");
 
 const signup = async (req, res, next) => {
+  const { username, email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  const newUser = new User({ username, email, password: hashedPassword });
+
   try {
-    const { username, email, password } = req.body;
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      //   return res.status(400).json({ message: "Username already exists" });
-      errorHandlingMiddleware(400, { message: "Username already exists" });
-    }
-
-    // Check if email already exists
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      //   return res.status(400).json({ message: "Email already exists" });
-      errorHandlingMiddleware(400, { message: "Email already exists" });
-    }
-
-    const newUser = new User({ username, email, password: hashedPassword });
     await newUser.save();
-    res.status(200).json({ message: "User created successfully" });
+    res.status(201).json("User created successfully!");
   } catch (error) {
-    // res.status(500).json({ message: error.message });
     next(error);
   }
 };
@@ -40,33 +24,18 @@ const signin = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return next(
-        errorHandlingMiddleware(400, { message: "Invalid email or password" })
-      );
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      const error = errorHandlingMiddleware(400, {
-        message: "Invalid email or password",
-      });
-      return next(error);
-    }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-    const { password: pass, ...rest } = user._doc;
-
+    const validUser = await User.findOne({ email });
+    if (!validUser) return next(errorHandler(404, "User not found!"));
+    const validPassword = bcrypt.compareSync(password, validUser.password);
+    if (!validPassword) return next(errorHandler(401, "Wrong credentials!"));
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    const { password: pass, ...rest } = validUser._doc;
     res
       .cookie("access_token", token, { httpOnly: true })
       .status(200)
       .json(rest);
-
-    // If the user is valid, you may want to return a success response or a token
-    // For example:
-    // res.json({ message: "Login successful" });
   } catch (error) {
-    return next(errorHandlingMiddleware(500, { message: error.message }));
+    next(error);
   }
 };
 
@@ -96,6 +65,7 @@ const google = async (req, res, next) => {
       await newUser.save();
       const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
       const { password: pass, ...rest } = newUser._doc;
+
       res
         .cookie("access_token", token, { httpOnly: true })
         .status(200)
@@ -106,4 +76,13 @@ const google = async (req, res, next) => {
   }
 };
 
-module.exports = { signup, signin, google };
+const signOut = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token");
+    res.status(200).json("User has been logged out!");
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { signup, signin, google, signOut };
