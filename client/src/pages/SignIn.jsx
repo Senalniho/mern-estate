@@ -5,15 +5,14 @@ import {
   signInStart,
   signInSuccess,
   signInFailure,
-} from "../redux/user/userSlice.js";
-import OAuth from "../components/OAuth.jsx";
+} from "../redux/user/userSlice";
+import OAuth from "../components/OAuth";
 
 export default function SignIn() {
+  const [formData, setFormData] = useState({});
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, errors } = useSelector((state) => state.user);
-
-  const [formData, setFormData] = useState({});
 
   const handleChange = (e) => {
     setFormData({
@@ -23,20 +22,17 @@ export default function SignIn() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent entire page form loading when form is submitted.
-
+    e.preventDefault();
     try {
       dispatch(signInStart());
-      const res = await fetch("api/auth/signin", {
+      const res = await fetch("/api/auth/signin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData), // This is for security purposes.
+        body: JSON.stringify(formData),
       });
-
       const data = await res.json();
-      console.log(data);
       if (data.success === false) {
         dispatch(signInFailure(data.message));
         return;
@@ -49,39 +45,44 @@ export default function SignIn() {
   };
 
   return (
-    <div className="p-3 max-w-md mx-auto rounded-lg shadow-lg mt-6 ">
-      <h1 className="text-3xl text-center font-semibold my-7">SignIn</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          placeholder="email"
-          className="border p-3 rounded-lg"
-          id="email"
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          placeholder="password"
-          className="border p-3 rounded-lg"
-          id="password"
-          onChange={handleChange}
-        />
+    <div className="max-w-md mx-auto p-6">
+      <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+        Sign In
+      </h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="email"
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="password"
+            onChange={handleChange}
+            required
+          />
+        </div>
         <button
-          className="bg-slate-700 text-white p-3 rounded-lg  
-        uppercase hover:opacity-95 disabled:opacity-80"
           disabled={loading}
+          className="w-full bg-blue-600 text-white p-3 rounded-lg uppercase font-semibold tracking-wide hover:bg-blue-700 transition duration-200 disabled:opacity-50"
         >
-          {loading ? "Submitting..." : "Sign In"}
+          {loading ? "Signing In..." : "Sign In"}
         </button>
-        <OAuth />
-        {errors && <p className="text-red-500 text-center">{errors}</p>}
+        <OAuth className="w-full" />
       </form>
-      <div className="flex gap-2 mt-5">
-        <p>Dont have an account?</p>
-        <Link to="/sign-up">
-          <span className="text-blue-700">Sign up</span>
+      <div className="mt-6 flex justify-center items-center space-x-2">
+        <p className="text-gray-600">Don't have an account?</p>
+        <Link to="/sign-up" className="text-blue-600 hover:underline">
+          Sign Up
         </Link>
       </div>
+      {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
     </div>
   );
 }

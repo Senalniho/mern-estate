@@ -25,7 +25,6 @@ export default function OAuth() {
           photo: result.user.photoURL,
         }),
       });
-      console.log(res.body.name, res.body.email, res.body.photo);
       const data = await res.json();
       dispatch(signInSuccess(data));
       navigate("/");
@@ -37,7 +36,7 @@ export default function OAuth() {
     <button
       onClick={handleGoogleClick}
       type="button"
-      className="bg-red-700 text-white p-3 rounded-lg uppercase hover:opacity-95"
+      className="bg-red-700 text-white p-3 rounded-lg uppercase hover:opacity-95 w-full"
     >
       Continue with google
     </button>

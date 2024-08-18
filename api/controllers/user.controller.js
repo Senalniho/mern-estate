@@ -1,15 +1,15 @@
-const express = require("express");
-const bcrypt = require("bcrypt");
-const { errorHandler } = require("../utilities/error.js");
-const User = require("../models/user.model.js");
-// const Listing = require("../models/listing.model.js");
-const { verifyToken } = require("../utilities/verifyUser.js");
+import bcryptjs from "bcryptjs";
+import User from "../models/user.model.js";
+import { errorHandler } from "../utils/error.js";
+import Listing from "../models/listing.model.js";
 
-const test = (req, res) => {
-  res.json({ message: "All good in here" });
+export const test = (req, res) => {
+  res.json({
+    message: "Api route is working!",
+  });
 };
 
-const updateUser = async (req, res, next) => {
+export const updateUser = async (req, res, next) => {
   if (req.user.id !== req.params.id)
     return next(errorHandler(401, "You can only update your own account!"));
   try {
@@ -38,7 +38,7 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-const deleteUser = async (req, res, next) => {
+export const deleteUser = async (req, res, next) => {
   if (req.user.id !== req.params.id)
     return next(errorHandler(401, "You can only delete your own account!"));
   try {
@@ -50,7 +50,7 @@ const deleteUser = async (req, res, next) => {
   }
 };
 
-const getUserListings = async (req, res, next) => {
+export const getUserListings = async (req, res, next) => {
   if (req.user.id === req.params.id) {
     try {
       const listings = await Listing.find({ userRef: req.params.id });
@@ -63,7 +63,7 @@ const getUserListings = async (req, res, next) => {
   }
 };
 
-const getUser = async (req, res, next) => {
+export const getUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -76,5 +76,3 @@ const getUser = async (req, res, next) => {
     next(error);
   }
 };
-
-module.exports = { test, updateUser, deleteUser, getUserListings, getUser };

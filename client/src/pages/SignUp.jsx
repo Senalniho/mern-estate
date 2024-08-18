@@ -16,22 +16,17 @@ export default function SignUp() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent entire page form loading when form is submitted.
-
-    // setErrors(null);
-
+    e.preventDefault();
     try {
       setLoading(true);
-      const res = await fetch("api/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData), // This is for security purposes.
+        body: JSON.stringify(formData),
       });
-
       const data = await res.json();
-      console.log(data);
       if (data.success === false) {
         setLoading(false);
         setError(data.message);
@@ -47,46 +42,52 @@ export default function SignUp() {
   };
 
   return (
-    <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl text-center font-semibold my-7">Sign Up</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="username"
-          className="border p-3 rounded-lg"
-          id="username"
-          onChange={handleChange}
-        />
-        <input
-          type="email"
-          placeholder="email"
-          className="border p-3 rounded-lg"
-          id="email"
-          onChange={handleChange}
-        />
-        <input
-          type="password"
-          placeholder="password"
-          className="border p-3 rounded-lg"
-          id="password"
-          onChange={handleChange}
-        />
-
+    <div className="max-w-md mx-auto p-6">
+      <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+        Sign Up
+      </h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Username"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="username"
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="email"
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+            id="password"
+            onChange={handleChange}
+            required
+          />
+        </div>
         <button
           disabled={loading}
-          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+          className="w-full bg-blue-600 text-white p-3 rounded-lg uppercase font-semibold tracking-wide hover:bg-blue-700 transition duration-200 disabled:opacity-50"
         >
-          {loading ? "Loading..." : "Sign Up"}
+          {loading ? "Signing Up..." : "Sign Up"}
         </button>
-        <OAuth />
+        <OAuth className="w-full" />
       </form>
-      <div className="flex gap-2 mt-5">
-        <p>Have an account?</p>
-        <Link to={"/sign-in"}>
-          <span className="text-blue-700">Sign in</span>
+      <div className="mt-6 flex justify-center items-center space-x-2">
+        <p className="text-gray-600">Have an account?</p>
+        <Link to="/sign-in" className="text-blue-600 hover:underline">
+          Sign In
         </Link>
       </div>
-      {error && <p className="text-red-500 mt-5">{error}</p>}
+      {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
     </div>
   );
 }

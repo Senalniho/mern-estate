@@ -18,6 +18,7 @@ import {
 } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+
 export default function Profile() {
   const fileRef = useRef(null);
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -30,12 +31,6 @@ export default function Profile() {
   const [userListings, setUserListings] = useState([]);
   const dispatch = useDispatch();
 
-  // firebase storage
-  // allow read;
-  // allow write: if
-  // request.resource.size < 2 * 1024 * 1024 &&
-  // request.resource.contentType.matches('image/.*')
-
   useEffect(() => {
     if (file) {
       handleFileUpload(file);
@@ -43,10 +38,6 @@ export default function Profile() {
   }, [file]);
 
   const handleFileUpload = (file) => {
-    if (file.size > 2 * 1024 * 1024) {
-      setFileUploadError(true);
-      return;
-    }
     const storage = getStorage(app);
     const fileName = new Date().getTime() + file.name;
     const storageRef = ref(storage, fileName);
@@ -60,7 +51,6 @@ export default function Profile() {
         setFilePerc(Math.round(progress));
       },
       (error) => {
-        console.log(error);
         setFileUploadError(true);
       },
       () => {
@@ -127,7 +117,7 @@ export default function Profile() {
       }
       dispatch(deleteUserSuccess(data));
     } catch (error) {
-      dispatch(deleteUserFailure(data.message));
+      dispatch(deleteUserFailure(error.message));
     }
   };
 
@@ -165,10 +155,11 @@ export default function Profile() {
       console.log(error.message);
     }
   };
+
   return (
-    <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <div className="p-6 max-w-3xl mx-auto bg-white shadow-lg rounded-lg mt-4">
+      <h1 className="text-3xl font-bold text-center my-7">Profile</h1>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <input
           onChange={(e) => setFile(e.target.files[0])}
           type="file"
@@ -180,113 +171,119 @@ export default function Profile() {
           onClick={() => fileRef.current.click()}
           src={formData.avatar || currentUser.avatar}
           alt="profile"
-          className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
+          className="rounded-full h-28 w-28 object-cover cursor-pointer self-center mt-2 border-4 border-gray-200"
         />
-        <p className="text-sm self-center">
+        <p className="text-sm text-center">
           {fileUploadError ? (
-            <span className="text-red-700">
-              Error Image upload (image must be less than 2 mb)
+            <span className="text-red-600">
+              Error: Image upload failed (image must be less than 2MB)
             </span>
           ) : filePerc > 0 && filePerc < 100 ? (
-            <span className="text-slate-700">{`Uploading ${filePerc}%`}</span>
+            <span className="text-blue-600">{`Uploading: ${filePerc}%`}</span>
           ) : filePerc === 100 ? (
-            <span className="text-green-700">Image successfully uploaded!</span>
-          ) : (
-            ""
-          )}
+            <span className="text-green-600">Image uploaded successfully!</span>
+          ) : null}
         </p>
         <input
           type="text"
-          placeholder="username"
+          placeholder="Username"
           defaultValue={currentUser.username}
           id="username"
-          className="border p-3 rounded-lg"
+          className="border p-4 rounded-lg focus:outline-none focus:border-blue-500"
           onChange={handleChange}
         />
         <input
           type="email"
-          placeholder="email"
+          placeholder="Email"
           id="email"
           defaultValue={currentUser.email}
-          className="border p-3 rounded-lg"
+          className="border p-4 rounded-lg focus:outline-none focus:border-blue-500"
           onChange={handleChange}
         />
         <input
           type="password"
-          placeholder="password"
+          placeholder="Password"
           onChange={handleChange}
           id="password"
-          className="border p-3 rounded-lg"
+          className="border p-4 rounded-lg focus:outline-none focus:border-blue-500"
         />
         <button
           disabled={loading}
-          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80"
+          className="bg-blue-600 text-white rounded-lg p-4 uppercase hover:bg-blue-700 disabled:bg-blue-300 transition-all"
         >
           {loading ? "Loading..." : "Update"}
         </button>
         <Link
-          className="bg-green-700 text-white p-3 rounded-lg uppercase text-center hover:opacity-95"
+          className="bg-green-600 text-white p-4 rounded-lg uppercase text-center hover:bg-green-700 transition-all"
           to={"/create-listing"}
         >
           Create Listing
         </Link>
       </form>
-      <div className="flex justify-between mt-5">
+      <div className="flex justify-between mt-8">
         <span
           onClick={handleDeleteUser}
-          className="text-red-700 cursor-pointer"
+          className="text-red-600 cursor-pointer hover:underline"
         >
           Delete account
         </span>
-        <span onClick={handleSignOut} className="text-red-700 cursor-pointer">
+        <span
+          onClick={handleSignOut}
+          className="text-red-600 cursor-pointer hover:underline"
+        >
           Sign out
         </span>
       </div>
 
-      <p className="text-red-700 mt-5">{error ? error : ""}</p>
-      <p className="text-green-700 mt-5">
-        {updateSuccess ? "User is updated successfully!" : ""}
-      </p>
-      <button onClick={handleShowListings} className="text-green-700 w-full">
+      {error && <p className="text-red-600 mt-5">{error}</p>}
+      {updateSuccess && (
+        <p className="text-green-600 mt-5">User updated successfully!</p>
+      )}
+
+      <button
+        onClick={handleShowListings}
+        className="bg-yellow-500 text-white mt-6 w-full p-3 rounded-lg hover:bg-yellow-600 transition-all"
+      >
         Show Listings
       </button>
-      <p className="text-red-700 mt-5">
-        {showListingsError ? "Error showing listings" : ""}
-      </p>
+
+      {showListingsError && (
+        <p className="text-red-600 mt-5">Error showing listings</p>
+      )}
 
       {userListings && userListings.length > 0 && (
-        <div className="flex flex-col gap-4">
-          <h1 className="text-center mt-7 text-2xl font-semibold">
-            Your Listings
-          </h1>
+        <div className="mt-8 flex flex-col gap-6">
+          <h1 className="text-center text-2xl font-semibold">Your Listings</h1>
           {userListings.map((listing) => (
             <div
               key={listing._id}
-              className="border rounded-lg p-3 flex justify-between items-center gap-4"
+              className="border rounded-lg p-4 flex justify-between items-center gap-4 hover:bg-gray-50 transition-all"
             >
               <Link to={`/listing/${listing._id}`}>
                 <img
                   src={listing.imageUrls[0]}
                   alt="listing cover"
-                  className="h-16 w-16 object-contain"
+                  className="h-20 w-20 object-cover rounded-lg"
                 />
               </Link>
               <Link
-                className="text-slate-700 font-semibold  hover:underline truncate flex-1"
+                className="text-slate-800 font-semibold hover:underline flex-1 truncate"
                 to={`/listing/${listing._id}`}
               >
                 <p>{listing.name}</p>
               </Link>
 
-              <div className="flex flex-col item-center">
+              <div className="flex flex-col items-center gap-2">
                 <button
                   onClick={() => handleListingDelete(listing._id)}
-                  className="text-red-700 uppercase"
+                  className="text-red-600 uppercase hover:text-red-700 transition-all"
                 >
                   Delete
                 </button>
                 <Link to={`/update-listing/${listing._id}`}>
-                  <button className="text-green-700 uppercase">Edit</button>
+                  <button className="text-green-600 uppercase hover:text-green-700 transition-all">
+                    Edit
+                  </button>
                 </Link>
               </div>
             </div>

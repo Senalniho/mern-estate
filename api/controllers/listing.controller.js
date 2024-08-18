@@ -1,163 +1,79 @@
-const express = require("express");
-const Listing = require("../models/listing.model.js");
-const { errorHandler } = require("../utilities/error.js");
+import User from "../models/user.model.js";
+import bcryptjs from "bcryptjs";
+import { errorHandler } from "../utils/error.js";
+import jwt from "jsonwebtoken";
 
-const createListing = async (req, res, next) => {
+export const signup = async (req, res, next) => {
+  const { username, email, password } = req.body;
+  const hashedPassword = bcryptjs.hashSync(password, 10);
+  const newUser = new User({ username, email, password: hashedPassword });
   try {
-    const listing = await Listing.create(req.body);
-    return res.status(201).json(listing);
+    await newUser.save();
+    res.status(201).json("User created successfully!");
   } catch (error) {
     next(error);
   }
 };
 
-const deleteListing = async (req, res, next) => {
-  const listing = await Listing.findById(req.params.id);
-
-  if (!listing) {
-    return next(errorHandler(404, "Listing not found!"));
-  }
-
-  if (req.user.id !== listing.userRef) {
-    return next(errorHandler(401, "You can only delete your own listings!"));
-  }
-
+export const signin = async (req, res, next) => {
+  const { email, password } = req.body;
   try {
-    await Listing.findByIdAndDelete(req.params.id);
-    res.status(200).json("Listing has been deleted!");
+    const validUser = await User.findOne({ email });
+    if (!validUser) return next(errorHandler(404, "User not found!"));
+    const validPassword = bcryptjs.compareSync(password, validUser.password);
+    if (!validPassword) return next(errorHandler(401, "Wrong credentials!"));
+    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
+    const { password: pass, ...rest } = validUser._doc;
+    res
+      .cookie("access_token", token, { httpOnly: true })
+      .status(200)
+      .json(rest);
   } catch (error) {
     next(error);
   }
 };
 
-const updateListing = async (req, res, next) => {
-  const listing = await Listing.findById(req.params.id);
-  if (!listing) {
-    return next(errorHandler(404, "Listing not found!"));
-  }
-  if (req.user.id !== listing.userRef) {
-    return next(errorHandler(401, "You can only update your own listings!"));
-  }
-
+export const google = async (req, res, next) => {
   try {
-    const updatedListing = await Listing.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    res.status(200).json(updatedListing);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getListing = async (req, res, next) => {
-  try {
-    const listing = await Listing.findById(req.params.id);
-    if (!listing) {
-      return next(errorHandler(404, "Listing not found!"));
+    const user = await User.findOne({ email: req.body.email });
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = user._doc;
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      const newUser = new User({
+        username:
+          req.body.name.split(" ").join("").toLowerCase() +
+          Math.random().toString(36).slice(-4),
+        email: req.body.email,
+        password: hashedPassword,
+        avatar: req.body.photo,
+      });
+      await newUser.save();
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = newUser._doc;
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
     }
-    res.status(200).json(listing);
   } catch (error) {
     next(error);
   }
 };
 
-// const getListings = async (req, res, next) => {
-//   try {
-//     const limit = parseInt(req.query.limit) || 9;
-//     const startIndex = parseInt(req.query.startIndex) || 0;
-//     let offer = req.query.offer;
-
-//     if (offer === undefined || offer === "false") {
-//       offer = { $in: [false, true] };
-//     }
-
-//     let furnished = req.query.furnished;
-
-//     if (furnished === undefined || furnished === "false") {
-//       furnished = { $in: [false, true] };
-//     }
-
-//     let parking = req.query.parking;
-
-//     if (parking === undefined || parking === "false") {
-//       parking = { $in: [false, true] };
-//     }
-
-//     let type = req.query.type;
-
-//     if (type === undefined || type === "all") {
-//       type = { $in: ["sale", "rent"] };
-//     }
-
-//     const searchTerm = req.query.searchTerm || "";
-
-//     const sort = req.query.sort || "createdAt";
-
-//     const order = req.query.order || "desc";
-
-//     const listings = await Listing.find({
-//       name: { $regex: searchTerm, $options: "i" },
-//       offer,
-//       furnished,
-//       parking,
-//       type,
-//     })
-//       .sort({ [sort]: order })
-//       .limit(limit)
-//       .skip(startIndex);
-
-//     return res.status(200).json(listings);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-const getListings = async (req, res, next) => {
+export const signOut = async (req, res, next) => {
   try {
-    console.log("getListings: req.query =", req.query);
-
-    const limit = parseInt(req.query.limit) || 9;
-    const startIndex = parseInt(req.query.startIndex) || 0;
-    let offer = req.query.offer;
-    let furnished = req.query.furnished;
-    let parking = req.query.parking;
-    let type = req.query.type;
-    const searchTerm = req.query.searchTerm || "";
-    const sort = req.query.sort || "createdAt";
-    const order = req.query.order || "desc";
-
-    console.log("getListings: filters =", {
-      offer,
-      furnished,
-      parking,
-      type,
-    });
-
-    const listings = await Listing.find({
-      name: { $regex: searchTerm, $options: "i" },
-      offer,
-      furnished,
-      parking,
-      type,
-    })
-      .sort({ [sort]: order })
-      .limit(limit)
-      .skip(startIndex);
-
-    console.log("getListings: listings =", listings);
-
-    return res.status(200).json(listings);
+    res.clearCookie("access_token");
+    res.status(200).json("User has been logged out!");
   } catch (error) {
     next(error);
   }
-};
-
-module.exports = {
-  createListing,
-  deleteListing,
-  updateListing,
-  getListing,
-  getListings,
 };
