@@ -1,12 +1,12 @@
-const express = require("express");
-const {
+import express from "express";
+import {
   createListing,
   deleteListing,
   updateListing,
   getListing,
   getListings,
-} = require("../controllers/listing.controller.js");
-const { verifyToken } = require("../utilities/verifyUser.js");
+} from "../controllers/listing.controller.js";
+import { verifyToken } from "../utilities/verifyUser.js";
 
 const router = express.Router();
 
@@ -16,4 +16,4 @@ router.post("/update/:id", verifyToken, updateListing);
 router.get("/get/:id", getListing);
 router.get("/get", getListings);
 
-module.exports = router;
+export default router;

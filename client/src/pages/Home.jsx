@@ -74,29 +74,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Swiper Carousel */}
-      {/* <div className="my-10">
-        <Swiper navigation loop className="w-full h-[80vh]">
-          {offerListings &&
-            offerListings.length > 0 &&
-            offerListings.map((listing) => (
-              <SwiperSlide key={listing._id}>
-                <div
-                  style={{
-                    background: `url(${listing.imageUrls[0]}) center no-repeat`,
-                    backgroundSize: "cover",
-                  }}
-                  className="h-full w-full flex items-center justify-center"
-                >
-                  <h2 className="text-white text-4xl font-bold bg-black/50 p-4 rounded-lg">
-                    {listing.name}
-                  </h2>
-                </div>
-              </SwiperSlide>
-            ))}
-        </Swiper>
-      </div> */}
-
       {/* Listings Display */}
       <div className="max-w-6xl mx-auto p-4 flex flex-col gap-12 my-12">
         {offerListings && offerListings.length > 0 && (
